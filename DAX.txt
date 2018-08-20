@@ -1,0 +1,63 @@
+---------------------------------------------------------------------
+-----------------------Measured Column Definitions:------------------
+---------------------------------------------------------------------
+CurrentDate = NOW()
+Report Name = "Account List"
+Format date = Format(FIRSTNONBLANK(CV_C_TIME_NOW[EST_NOW],CV_C_TIME_NOW[EST_NOW]), "mmm dd, yyyy")
+UserMsg1 = "Welcome " & USERPRINCIPALNAME() & ": "  & [Format date]
+
+
+---------------------------------------------------------------------
+-----------------------Calculated Members:---------------------------
+---------------------------------------------------------------------
+BackorderedQty = IF(ISBLANK(SUM(CV_C_OPEN_ORDERS[Order quantity])),0,SUM(CV_C_OPEN_ORDERS[Order quantity]))
+Price1 = DIVIDE(sum(CV_C_OPEN_ORDERS[Subtotal 2]),sum(CV_C_OPEN_ORDERS[Order quantity]),0)
+Month No = MONTH(CV_C_BASE_PROD_TREND_CUST[Cal month])
+MonthDescription = If(CV_C_BASE_PROD_TREND_CUST[Month No] = 1,"Jan",if( CV_C_BASE_PROD_TREND_CUST[Month No]  = 2,"Feb",if( CV_C_BASE_PROD_TREND_CUST[Month No]  = 3,"Mar",if( CV_C_BASE_PROD_TREND_CUST[Month No]  = 4,"Apr",if( CV_C_BASE_PROD_TREND_CUST[Month No]  = 5,"May",if( CV_C_BASE_PROD_TREND_CUST[Month No]  = 6,"Jun",if( CV_C_BASE_PROD_TREND_CUST[Month No]  = 7,"Jul",if( CV_C_BASE_PROD_TREND_CUST[Month No]  = 8,"Aug",if( CV_C_BASE_PROD_TREND_CUST[Month No] = 9,"Sep",if( CV_C_BASE_PROD_TREND_CUST[Month No]  = 10,"Oct",if(CV_C_BASE_PROD_TREND_CUST[Month No]  = 11, "Nov", "Dec")))))))))))
+MonthName = CONCATENATE(CONCATENATE(CV_C_BASE_PROD_TREND_CUST[MonthDescription],", " ), CV_C_BASE_PROD_TREND_CUST[Year])
+Below average = CALCULATE(DISTINCTCOUNT(CV_C_BASE_PROD_TREND_SUMMARY[Customer]), FILTER(CV_C_BASE_PROD_TREND_SUMMARY, CV_C_BASE_PROD_TREND_SUMMARY[Customer below average] = "Y")) 
+Percentage of Months below avg = DIVIDE(SUM(CV_C_BASE_PROD_TREND_SUMMARY[% of months below average]),100,0)
+-----------------
+OrderTotal = SUM('CV_C_COMB_SALES_ORDERS_DETAILS'[Order qty]) * [SellingPrice]
+SellingPrice = DIVIDE(SUM('CV_C_COMB_SALES_ORDERS_DETAILS'[Net Value]),	SUM('CV_C_COMB_SALES_ORDERS_DETAILS'[Order qty]))
+Delinquent loaners = IF(ISBLANK(CALCULATE(DISTINCTCOUNT(CV_C_COMB_LOANER_DETAILS[Order number]),FILTER(CV_C_COMB_LOANER_DETAILS,CV_C_COMB_LOANER_DETAILS[Delinquent loaner] = "Y"))),0,(CALCULATE(DISTINCTCOUNT(CV_C_COMB_LOANER_DETAILS[Order number]),FILTER(CV_C_COMB_LOANER_DETAILS,CV_C_COMB_LOANER_DETAILS[Delinquent loaner] = "Y"))))
+Delinquent% = IF(ISBLANK(DIVIDE(CV_C_COMB_LOANER_DETAILS[Delinquent loaners],CV_C_COMB_LOANER_DETAILS[Open loaners])),0,(DIVIDE(CV_C_COMB_LOANER_DETAILS[Delinquent loaners],CV_C_COMB_LOANER_DETAILS[Open loaners])))
+Premimum_Flag = IF(RELATED(ZSPMA_017[4ZSPMA_017-LOOKUP_TBL_NAME])="Premium_Flag","Yes", "No")
+CY MTD qty = CALCULATE(SUM(CV_C_COMB_SALES_ORDERS_DETAILS[Order qty]), CV_C_COMB_SALES_ORDERS_DETAILS[Current MTD] = "CY MTD")
+MTD_Growth% = DIVIDE(sum(CV_C_COMB_SALES_ORDERS_DETAILS[MTD Diff]),sum(CV_C_COMB_SALES_ORDERS_DETAILS[PY MTD]),0)
+YTD qty growth = DIVIDE(([CY YTD qty] - [PY YTD qty] ),([PY YTD qty]),0)
+YTD Diff = CV_C_COMB_SALES_ORDERS_DETAILS[CY YTD] - CV_C_COMB_SALES_ORDERS_DETAILS[PY YTD]
+YTD_Growth = DIVIDE(sum(CV_C_COMB_SALES_ORDERS_DETAILS[YTD Diff]),sum(CV_C_COMB_SALES_ORDERS_DETAILS[PY YTD]),0)
+---
+OpenAR = SUMX(
+SUMMARIZE(CV_C_CUSTOMER_CREDIT_HOLD,CV_C_CUSTOMER_CREDIT_HOLD[Bill Number], "Max Sales", MAX(CV_C_CUSTOMER_CREDIT_HOLD[0DEB_CRE_LC])),
+[Max Sales])
+-----
+Percentage = DIVIDE(CV_C_FREIGHT_DISCOUNT[Discount Percentage],100,0) 
+Total Repairs = IF(ISBLANK(DISTINCTCOUNT(CV_C_COMB_SERVICE_ORDER[Order number])),0,DISTINCTCOUNT(CV_C_COMB_SERVICE_ORDER[Order number]))
+Is CurrentYear = IF(Year(CV_C_CREDITS_RM_FACT[Billing date])  = YEAR(today()),1,0)
+Transactionsales = IF(ISBLANK(SUM(CV_C_CREDITS_RM_FACT[Net value])),0,SUM(CV_C_CREDITS_RM_FACT[Net value]))
+----
+Total Sales = CALCULATE( [Sum Of Sales] , ALL( DimProductSubcategory ))
+Sum of sales all countries = CALCULATE(SUM('Sales'[Sales]),ALL('SalesGeography'))
+Working Days Sales = CALCULATE([Sum Of Sales], DimCalendar[DayName] <> “Saturday”, DimCalendar[DayName] <> “Sunday”)
+Count of sales orders over 100 = COUNTROWS(FILTER('Sales', 'Sales'[Sales] > 100))
+Total sales this year = TOTALYTD(SUM('Sales'[Sales]), 'Dates'[Dates])
+-----
+West Sales (Qty NOT 2) MEASURE 2 = 
+CALCULATE (
+    SUM ( factSales[amount] ),
+    FILTER ( dimStores, dimStores[name] = "West" ),
+    FILTER ( factSales, factSales[quantity] <> 2 )
+)
+------
+Table =
+SUMMARIZE (
+    FILTER ( Cool, Cool[Object] = "Toy" ),
+    Cool[Date],
+    "Sales", COUNT ( Cool[Transactions] )
+)
+
+
+
+
