@@ -1,0 +1,1 @@
+AS_Posted_01 = CALCULATE(SUM(FactTable[hrc_u_volume]),USERELATIONSHIP(Mastercalendar[DateText],FactTable[closed_at_text]))

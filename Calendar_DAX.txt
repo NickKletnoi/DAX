@@ -1,0 +1,15 @@
+DateTable =
+ADDCOLUMNS (
+CALENDAR (MINX(HR_HEADCOUNT,[Date]), NOW()),
+"Year", YEAR ( [Date] ),
+"QuarterOfYear", FORMAT ( [Date], "Q" ),
+"MonthOfYear", FORMAT ( [Date], "MM" ),
+"DateInt", FORMAT ( [Date], "YYYYMMDD" ),
+"MonthName", FORMAT ( [Date], "mmmm" ) & " " & FORMAT ( [Date], "YYYY" ),
+"MonthInCalendar", FORMAT ( [Date], "mmm YYYY" ),
+"QuarterInCalendar", "Q" & FORMAT ( [Date], "Q" ) & " " & FORMAT ( [Date], "YYYY" ),
+"DayInWeek", WEEKDAY ( [Date] ),
+"DayOfWeekName", FORMAT ( [Date], "dddd" ),
+"DayOfWeekShort", FORMAT ( [Date], "ddd" ),
+"YearMonthShort", FORMAT ( [Date], "YYYY/mmm" ),
+"MonthNameShort", FORMAT ( [Date], "mmm" )
