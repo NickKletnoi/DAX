@@ -6,6 +6,9 @@ Report Name = "Account List"
 Format date = Format(FIRSTNONBLANK(CV_C_TIME_NOW[EST_NOW],CV_C_TIME_NOW[EST_NOW]), "mmm dd, yyyy")
 UserMsg1 = "Welcome " & USERPRINCIPALNAME() & ": "  & [Format date]
 
+Yearly % = DIVIDE ( [Sales Amount], CALCULATE ( [Sales Amount], ALLSELECTED (), VALUES ( 'Date'[Calendar Year] ) ))
+Yearly % = DIVIDE ( [Sales Amount], CALCULATE ( [Sales Amount], ALLSELECTED (), VALUES ( 'Date'[Calendar Year] ) ))
+
 
 ---------------------------------------------------------------------
 -----------------------Calculated Members:---------------------------
