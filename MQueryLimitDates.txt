@@ -1,0 +1,4 @@
+Put this in place of hard-coded generate year value:(use the same technique for anything else)
+---
+Date.Year(List.First((CV_C_TIME_NOW[EST_NOW]))))
+Date.Year(List.First((CV_C_TIME_NOW[EST_NOW])))-1)
