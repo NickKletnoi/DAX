@@ -1,0 +1,1 @@
+Table.AddColumn(#"PreviousStep", "NNCount", each List.NonNullCount({[Bin (DSCR)],[Bin (NCF)], [Bin (OpEx)] ...}))
