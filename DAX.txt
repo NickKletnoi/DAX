@@ -9,6 +9,28 @@ UserMsg1 = "Welcome " & USERPRINCIPALNAME() & ": "  & [Format date]
 Yearly % = DIVIDE ( [Sales Amount], CALCULATE ( [Sales Amount], ALLSELECTED (), VALUES ( 'Date'[Calendar Year] ) ))
 Yearly % = DIVIDE ( [Sales Amount], CALCULATE ( [Sales Amount], ALLSELECTED (), VALUES ( 'Date'[Calendar Year] ) ))
 
+----- complex evaluate
+
+evaluate(      
+    summarize(       
+        filter(      
+            'Internet Sales'      
+            , related('Date'[Calendar Year])=2007      
+        )                   
+        , 'Date'[Month]      
+        , "Umsatz"      
+        , Sum('Internet Sales'[Sales Amount])      
+        , "UmsatzWE"      
+        , Calculate(      
+            Sum('Internet Sales'[Sales Amount])      
+            , Or(      
+                'Date'[Day Name Of Week]="Sunday"      
+                , 'Date'[Day Name Of Week]="Saturday"      
+            )      
+         )      
+    )      
+)
+
 
 ---------------------------------------------------------------------
 -----------------------Calculated Members:---------------------------
