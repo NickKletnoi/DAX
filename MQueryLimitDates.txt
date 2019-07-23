@@ -2,3 +2,11 @@ Put this in place of hard-coded generate year value:(use the same technique for 
 ---
 Date.Year(List.First((CV_C_TIME_NOW[EST_NOW]))))
 Date.Year(List.First((CV_C_TIME_NOW[EST_NOW])))-1)
+
+--------- 2 year filter -------------------------
+(Performance , Shipments ) -----------------------
+> Date.Year(List.First((CV_C_TIME_NOW[EST_NOW])))-2)
+
+(Orders, Billings )
+----------7 year filter  -------------------------
+> Date.Year(List.First((CV_C_TIME_NOW[EST_NOW])))-7)
