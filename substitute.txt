@@ -1,0 +1,1 @@
+=PATHITEM(SUBSTITUTE(DimMeter[Meter Name ], ".", "|"), 1)
