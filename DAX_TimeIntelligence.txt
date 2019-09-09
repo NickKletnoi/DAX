@@ -1,0 +1,267 @@
+Calculation Item	Expression
+"Current"
+SELECTEDMEASURE()
+"MTD"
+CALCULATE(SELECTEDMEASURE(), DATESMTD(DimDate[Date]))
+"QTD"
+CALCULATE(SELECTEDMEASURE(), DATESQTD(DimDate[Date]))
+"YTD"
+CALCULATE(SELECTEDMEASURE(), DATESYTD(DimDate[Date]))
+"PY"
+CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR(DimDate[Date]))
+"PY MTD"
+CALCULATE(
+    SELECTEDMEASURE(),
+    SAMEPERIODLASTYEAR(DimDate[Date]),
+    'Time Intelligence'[Time Calculation] = "MTD"
+)
+"PY QTD"
+CALCULATE(
+    SELECTEDMEASURE(),
+    SAMEPERIODLASTYEAR(DimDate[Date]),
+    'Time Intelligence'[Time Calculation] = "QTD"
+)
+"PY YTD"
+CALCULATE(
+    SELECTEDMEASURE(),
+    SAMEPERIODLASTYEAR(DimDate[Date]),
+    'Time Intelligence'[Time Calculation] = "YTD"
+)
+"YOY"
+SELECTEDMEASURE() –
+CALCULATE(
+    SELECTEDMEASURE(),
+    'Time Intelligence'[Time Calculation] = "PY"
+)
+"YOY%"
+DIVIDE(
+    CALCULATE(
+        SELECTEDMEASURE(),
+        'Time Intelligence'[Time Calculation]="YOY"
+    ),
+    CALCULATE(
+        SELECTEDMEASURE(),
+        'Time Intelligence'[Time Calculation]="PY"
+    ),
+)
+ 
+
+Here is a DAX query and output. The output shows the calculations applied. For example, QTD for March 2012 is the sum of January, February and March 2012.
+
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        DimDate[CalendarYear],
+        DimDate[EnglishMonthName],
+        "Current", CALCULATE ( [InternetTotalSales], 'Time Intelligence'[Time Calculation] = "Current" ),
+        "QTD",     CALCULATE ( [InternetTotalSales], 'Time Intelligence'[Time Calculation] = "QTD" ),
+        "YTD",     CALCULATE ( [InternetTotalSales], 'Time Intelligence'[Time Calculation] = "YTD" ),
+        "PY",      CALCULATE ( [InternetTotalSales], 'Time Intelligence'[Time Calculation] = "PY" ),
+        "PY QTD",  CALCULATE ( [InternetTotalSales], 'Time Intelligence'[Time Calculation] = "PY QTD" ),
+        "PY YTD",  CALCULATE ( [InternetTotalSales], 'Time Intelligence'[Time Calculation] = "PY YTD" )
+    ),
+    DimDate[CalendarYear] IN { 2012, 2013 }
+)
+Time intelligence
+
+ 
+
+Sideways recursion
+Some of the calculation items refer to other ones in the same calculation group. This is called “sideways recursion”. For example, YOY% (shown below for easy reference) refers to 2 other calculation items, but they are evaluated separately using different calculate statements. Other types of recursion are not supported (see below).
+
+DIVIDE(
+    CALCULATE(
+        SELECTEDMEASURE(),
+        'Time Intelligence'[Time Calculation]="YOY"
+    ),
+    CALCULATE(
+        SELECTEDMEASURE(),
+        'Time Intelligence'[Time Calculation]="PY"
+    ),
+)
+ 
+
+Single calculation item in filter context
+Here is the definition of PY YTD:
+
+CALCULATE(
+    SELECTEDMEASURE(),
+    SAMEPERIODLASTYEAR(DimDate[Date]),
+    'Time Intelligence'[Time Calculation] = "YTD"
+)
+The YTD argument to the CALCULATE() function overrides the filter context to reuse the logic already defined in the YTD calculation item. It is not possible to apply both PY and YTD in a single evaluation. Calculation groups are only applied if a single calculation item from the calculation group is in filter context.
+
+This is illustrated by the following query and output.
+
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        DimDate[CalendarYear],
+        DimDate[EnglishMonthName],
+
+        //No time intelligence applied: all calc items in filter context:
+        "InternetTotalSales", [InternetTotalSales],
+
+        //No time intelligence applied: 2 calc items in filter context:
+        "PY || YTD", CALCULATE ( [InternetTotalSales],
+            'Time Intelligence'[Time Calculation] = "PY" || 'Time Intelligence'[Time Calculation] = "YTD"
+        ),
+
+        //YTD applied: exactly 1 calc item in filter context:
+        "YTD", CALCULATE ( [InternetTotalSales], 'Time Intelligence'[Time Calculation] = "YTD" )
+    ),
+    DimDate[CalendarYear] = 2012
+)
+Single-calc-item
+
+A calculation group should be designed so that each calculation item within it presented to the end user only makes sense to be applied one at a time. If there is a business requirement to allow the end user to apply more than one calculation item at a time, multiple calculation groups should be used with different precedence.
+
+ 
+
+Precedence
+In the same model as the time-intelligence example above, the following calculation group also exists. It contains average calculations that are independent of traditional time intelligence in that they don’t change the date filter context; they just apply average calculations within it.
+
+In this example, a daily average calculation is defined. It is common in oil-and-gas applications to use calculations such as “barrels of oil per day”. Other common business examples include “store sales average” in the retail industry.
+
+Whilst such calculations are calculated independently of time-intelligence calculations, there may well be a requirement to combine them. For example, the end-user might want to see “YTD barrels of oil per day” to view the daily-oil rate from the beginning of the year to the current date. In this scenario, precedence should be set for calculation items.
+
+Table	Averages
+Column	Average Calculation
+Precedence	10
+ 
+
+Calculation Item	Expression
+"No Average"
+SELECTEDMEASURE()
+"Daily Average"
+DIVIDE(SELECTEDMEASURE(), COUNTROWS(DimDate))
+ 
+
+Here is a DAX query and output.
+
+EVALUATE
+    CALCULATETABLE (
+        SUMMARIZECOLUMNS (
+        DimDate[CalendarYear],
+        DimDate[EnglishMonthName],
+        "InternetTotalSales", CALCULATE (
+            [InternetTotalSales],
+            'Time Intelligence'[Time Calculation] = "Current",
+            'Averages'[Average Calculation] = "No Average"
+        ),
+        "YTD", CALCULATE (
+            [InternetTotalSales],
+            'Time Intelligence'[Time Calculation] = "YTD",
+            'Averages'[Average Calculation] = "No Average"
+        ),
+        "Daily Average", CALCULATE (
+            [InternetTotalSales],
+            'Time Intelligence'[Time Calculation] = "Current",
+            'Averages'[Average Calculation] = "Daily Average"
+        ),
+        "YTD Daily Average", CALCULATE (
+            [InternetTotalSales],
+            'Time Intelligence'[Time Calculation] = "YTD",
+            'Averages'[Average Calculation] = "Daily Average"
+        )
+    ),
+    DimDate[CalendarYear] = 2012
+)
+YTD-Daily-Avg
+
+The following table shows how the March 2012 values are calculated.
+
+Column name	Calculation
+YTD	Sum of InternetTotalSales for Jan, Feb, Mar 2012
+= 495,364 + 506,994 + 373,483
+
+Daily Average	InternetTotalSales for Mar 2012 divided by # of days in March
+= 373,483 / 31
+
+YTD Daily Average	YTD for Mar 2012 divided by # of days in Jan, Feb and Mar
+=  1,375,841 / (31 + 29 + 31)
+
+ 
+
+For easy reference, here is the definition of the YTD calculation item. It is applied with Precedence of 20.
+
+CALCULATE(SELECTEDMEASURE(), DATESYTD(DimDate[Date]))
+Here is Daily Average. It is applied with Precedence of 10.
+
+DIVIDE(SELECTEDMEASURE(), COUNTROWS(DimDate))
+Since the precedence of the Time Intelligence calculation group is higher than the Averages one, it is applied as broadly as possible. The YTD Daily Average calculation applies YTD to both the numerator and the denominator (count of days) of the daily average calculation.
+
+This is equivalent to this calculation:
+
+CALCULATE(DIVIDE(SELECTEDMEASURE(), COUNTROWS(DimDate)), DATESYTD(DimDate[Date]))
+Not this one:
+
+DIVIDE(CALCULATE(SELECTEDMEASURE(), DATESYTD(DimDate[Date])), COUNTROWS(DimDate))
+ 
+
+New DAX functions
+The following new DAX functions have been introduced to work with calculation groups.
+
+Function name	Description
+SELECTEDMEASURE()
+Returns a reference to the measure currently in context.
+SELECTEDMEASURENAME()
+Returns a string containing the name of the measure currently in context.
+ISSELECTEDMEASURE( M1, M2, … )
+Returns a Boolean indicating whether the measure currently in context is one of those specified as an argument.
+ 
+
+SELECTEMEASURENAME() or ISSELECTEDMEASURE() can be used to conditionally apply calculation items depending on the measure in context. For example, it probably doesn’t make sense to calculate the daily average of a ratio measure.
+
+With ISSELECTEDMEASURE():
+
+IF (
+    ISSELECTEDMEASURE ( [Expense Ratio 1], [Expense Ratio 2] ),
+    SELECTEDMEASURE (),
+    DIVIDE ( SELECTEDMEASURE (), COUNTROWS ( DimDate ) )
+)
+ISSELECTEDMEASURE() has the advantage of working with formula fix up, so measure-name changes are reflected automatically.
+
+ 
+
+Power BI implicit measures
+Calculation groups work with query scope measures, but not inline DAX calculations. This is shown by the following query.
+
+DEFINE
+MEASURE FactInternetSales[QueryScope] = SUM ( FactInternetSales[SalesAmount] )
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        DimDate[CalendarYear],
+        DimDate[EnglishMonthName],
+
+        //YTD applied successfully to model measure:
+        "Model Measure", CALCULATE (
+            [InternetTotalSales],
+            'Time Intelligence'[Time Calculation] = "YTD"
+        ),
+
+        //YTD applied successfully to query scope measure:
+        "Query Scope", CALCULATE (
+            [QueryScope],
+            'Time Intelligence'[Time Calculation] = "YTD"
+        ),
+
+        //YTD not applied to inline calculation:
+        "Inline", CALCULATE (
+            SUM ( FactInternetSales[SalesAmount] ),
+            'Time Intelligence'[Time Calculation] = "YTD"
+        )
+    ),
+    DimDate[CalendarYear] = 2012
+)
+Power BI implicit measures are created when the end user drags columns onto visuals to view aggregated values without creating an explicit measure. At time of writing, Power BI generates DAX for implicit measures written as inline DAX calculations. This means implicit measures don’t work with calculation groups. To reserve the right to introduce this at a later date, a new model property visible in TOM has been introduced called DiscourageImplicitMeasures. In the current version, it must be set to true to create calculation groups. When set to true, Power BI Desktop in Live Connect mode disables creation of implicit measures.
+
+ 
+
+DMV support
+The following Dynamic Management Views (DMV) have been introduced for calculation groups.
+
+TMSCHEMA_CALCULATION_GROUPS
+TMSCHEMA_CALCULATION_ITEMS
+ 
