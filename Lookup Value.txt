@@ -1,0 +1,4 @@
+LOOKUPVALUE (
+    DimCanvasProfileAnswer[ProfileAnswerOptionValue],
+    DimCanvasProfileAnswer[ProfileAnswerOptionNKey], RELATED ( DimEngagement[ProfilePrimaryIndustry] )
+)
