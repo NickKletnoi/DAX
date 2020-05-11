@@ -1,0 +1,110 @@
+UNION(
+            SUMMARIZE
+            (
+
+                ADDCOLUMNS
+                (
+                    'FctCanvasEngagement',
+                    "Name","      Partner Invited / Role Assigned",
+                    "Value ",IF(RELATED('DimEngagement'[IsPartnerInvited])= TRUE()," Yes","No"),
+                    " Teams ", 'FctCanvasEngagement'[EngagementSKey]
+                ),
+                'FctCanvasEngagement'[EngagementSKey],  
+                'FctCanvasEngagement'[GeographySKey],   
+                [Name],
+                [Value ],
+                [ Teams ],
+                "FctCanvasEngagementKey",MAX('FctCanvasEngagement'[FctCanvasEngagementSKey])
+
+            )
+            
+            
+            ,           SUMMARIZE
+            (
+
+                ADDCOLUMNS
+                (
+                    'FctCanvasEngagement',"Name","     CRA Summary Partner Signed Off ",
+                    "IsPartnerEQR",IF(RELATED('DimEngagement'[HasCRAPartnerInChargeSignOff]) = TRUE()," Yes","No"),
+                    "Engagements", 'FctCanvasEngagement'[EngagementSKey]
+                ),
+                'FctCanvasEngagement'[EngagementSKey],          
+                'FctCanvasEngagement'[GeographySKey],
+                [Name],
+                [IsPartnerEQR],
+                [Engagements],
+                "FctCanvasEngagementKey",MAX('FctCanvasEngagement'[FctCanvasEngagementSKey])
+
+            )   
+
+
+            ,
+            SUMMARIZE
+            (
+                FILTER
+                (
+                    ADDCOLUMNS
+                    (
+                        'FctCanvasEngagement',"Name","   EQR Invited / Role Assigned",
+                        "IsPartnerEQR",IF(RELATED('DimEngagement'[IsEQRInvited]) = TRUE()," Yes","No"),
+                    "Engagements", 'FctCanvasEngagement'[EngagementSKey]
+                    ),
+                    RELATED('DimEngagement'[IsEQREngagement]) = TRUE
+                ),
+                'FctCanvasEngagement'[EngagementSKey],
+                'FctCanvasEngagement'[GeographySKey],
+                [Name],
+                [IsPartnerEQR],
+                [Engagements],
+                "FctCanvasEngagementKey",MAX('FctCanvasEngagement'[FctCanvasEngagementSKey])
+
+
+            )
+            ,       
+            SUMMARIZE
+            (
+                FILTER
+                (
+                    ADDCOLUMNS
+                    (
+                        'FctCanvasEngagement',"Name","  CRA Summary EQR Signed Off",
+                    "IsPartnerEQR",IF(RELATED('DimEngagement'[HasCRAEQRSignOff]) = TRUE()," Yes","No"),
+                    "Engagements", 'FctCanvasEngagement'[EngagementSKey]
+                    ),
+                    RELATED('DimEngagement'[IsEQREngagement]) = TRUE
+                ),
+                'FctCanvasEngagement'[EngagementSKey],
+                'FctCanvasEngagement'[GeographySKey],
+                [Name],
+                [IsPartnerEQR],
+                [Engagements],
+                "FctCanvasEngagementSKey",MAX('FctCanvasEngagement'[FctCanvasEngagementSKey])
+
+            
+            )
+
+    
+                    
+            ,           
+            SUMMARIZE
+            (
+
+                ADDCOLUMNS
+                (
+                    'FctCanvasEngagement',"Name","    AuditPlan Partner Signed Off ",
+                    "IsPartnerEQR",IF(RELATED('DimEngagement'[HasAuditPlanPartnerInChargeSignOff]) = TRUE()," Yes","No"),
+                    "Engagements", 'FctCanvasEngagement'[EngagementSKey]
+                ),
+                'FctCanvasEngagement'[EngagementSKey],          
+                'FctCanvasEngagement'[GeographySKey],
+                [Name],
+                [IsPartnerEQR],
+                [Engagements],
+                "FctCanvasEngagementKey",MAX('FctCanvasEngagement'[FctCanvasEngagementSKey])
+
+            )   
+
+        )
+    
+    
+    
