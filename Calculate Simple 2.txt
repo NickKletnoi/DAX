@@ -1,0 +1,10 @@
+CALCULATE (
+    DISTINCTCOUNT ( FctCanvasEngagement[EngagementSKey] ),
+    DimEngagement[HasCRAEQRSignOff]
+        = TRUE ()
+)
+    / CALCULATE (
+        DISTINCTCOUNT ( FctCanvasEngagement[EngagementSKey] ),
+        DimEngagement[IsEQREngagement]
+            = TRUE ()
+    )
