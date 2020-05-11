@@ -1,0 +1,5 @@
+CALCULATE (
+    SUM ( FctCanvasEngagement[WTTotalCompletedTasks] )
+        / SUM ( FctCanvasEngagement[WTTotalTasks] ),
+    FctCanvasEngagement[WTTotalTasks] > 0
+)
