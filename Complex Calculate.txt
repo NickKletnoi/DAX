@@ -1,0 +1,53 @@
+IF (
+    CONCATENATE (
+        CONCATENATE (
+            IF (
+                ISBLANK (
+                    CALCULATE (
+                        DISTINCTCOUNT ( FctCanvasEngagement[EngagementSKey] ),
+                        DimEngagement[HasAuditPlanEQRSignOff]
+                            = TRUE ()
+                    )
+                ),
+                0,
+                CALCULATE (
+                    DISTINCTCOUNT ( FctCanvasEngagement[EngagementSKey] ),
+                    DimEngagement[HasAuditPlanEQRSignOff]
+                        = TRUE ()
+                )
+            ),
+            "/"
+        ),
+        CALCULATE (
+            DISTINCTCOUNT ( FctCanvasEngagement[EngagementSKey] ),
+            DimEngagement[IsEQREngagement]
+                = TRUE ()
+        )
+    ) = "0/",
+    BLANK (),
+    CONCATENATE (
+        CONCATENATE (
+            IF (
+                ISBLANK (
+                    CALCULATE (
+                        DISTINCTCOUNT ( FctCanvasEngagement[EngagementSKey] ),
+                        DimEngagement[HasAuditPlanEQRSignOff]
+                            = TRUE ()
+                    )
+                ),
+                0,
+                CALCULATE (
+                    DISTINCTCOUNT ( FctCanvasEngagement[EngagementSKey] ),
+                    DimEngagement[HasAuditPlanEQRSignOff]
+                        = TRUE ()
+                )
+            ),
+            "/"
+        ),
+        CALCULATE (
+            DISTINCTCOUNT ( FctCanvasEngagement[EngagementSKey] ),
+            DimEngagement[IsEQREngagement]
+                = TRUE ()
+        )
+    )
+)
